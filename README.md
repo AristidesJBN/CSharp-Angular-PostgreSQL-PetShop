@@ -73,15 +73,3 @@ npm install
 npm start -- --host 0.0.0.0
 ```
 
-## Observações importantes
-
-- O front-end consome a API em `http://localhost:5049`.
-- A API usa o banco PostgreSQL no contêiner Docker na porta `5432`.
-- Se a porta `5432` estiver ocupada, pare o PostgreSQL local ou ajuste o `docker-compose.yml`.
-- A foto do animal é opcional; o sistema funciona sem upload de imagem.
-- A busca de CEP no cadastro de tutores completa `logradouro`, `bairro`, `cidade` e `uf` automaticamente.
-- Este é o README principal do projeto; o arquivo `petshop-ui/README.md` foi removido para manter a documentação padronizada.
-
-## Melhoria visual
-
-O layout foi atualizado para utilizar Angular Material com um shell mais limpo, cards com sombra suave e uma lista de animais mais legível.
