@@ -73,3 +73,7 @@ npm install
 npm start -- --host 0.0.0.0
 ```
 
+## Login e Senha
+login: admin@petshop.com
+senha: Admin@123
+
