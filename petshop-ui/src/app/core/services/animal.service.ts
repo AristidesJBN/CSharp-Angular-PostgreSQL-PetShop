@@ -6,7 +6,7 @@ import { DashboardSummary } from '../models/dashboard.model';
 
 @Injectable({ providedIn: 'root' })
 export class AnimalService {
-  private readonly apiUrl = 'http://localhost:5200/animais';
+  private readonly apiUrl = 'http://localhost:5049/animais';
 
   constructor(private readonly http: HttpClient) {}
 

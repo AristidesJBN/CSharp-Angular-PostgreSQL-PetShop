@@ -1,11 +1,11 @@
 import { HttpClient } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
-import { Tutor } from '../models/tutor.model';
+import { Tutor, TutorPayload } from '../models/tutor.model';
 
 @Injectable({ providedIn: 'root' })
 export class TutorService {
-  private readonly apiUrl = 'http://localhost:5200/tutores';
+  private readonly apiUrl = 'http://localhost:5049/tutores';
 
   constructor(private readonly http: HttpClient) {}
 
@@ -17,7 +17,7 @@ export class TutorService {
     return this.http.get<Tutor>(`${this.apiUrl}/${id}`);
   }
 
-  create(payload: Tutor): Observable<Tutor> {
+  create(payload: TutorPayload): Observable<Tutor> {
     return this.http.post<Tutor>(this.apiUrl, payload);
   }
 

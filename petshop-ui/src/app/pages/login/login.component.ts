@@ -7,6 +7,7 @@ import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 import { Router } from '@angular/router';
+import { finalize } from 'rxjs/operators';
 import { AuthService } from '../../core/services/auth.service';
 
 @Component({
@@ -30,7 +31,7 @@ import { AuthService } from '../../core/services/auth.service';
             <input matInput formControlName="senha" type="password" />
           </mat-form-field>
 
-          <button mat-flat-button color="primary" type="submit" [disabled]="form.invalid">Entrar</button>
+          <button mat-flat-button color="primary" type="submit" [disabled]="form.invalid || isSubmitting">{{ isSubmitting ? 'Entrando...' : 'Entrar' }}</button>
         </form>
       </mat-card>
     </div>
@@ -60,6 +61,7 @@ import { AuthService } from '../../core/services/auth.service';
 })
 export class LoginComponent {
   protected form!: FormGroup;
+  protected isSubmitting = false;
 
   constructor(
     private readonly fb: FormBuilder,
@@ -74,18 +76,21 @@ export class LoginComponent {
   }
 
   submit(): void {
-    if (this.form.invalid) {
+    if (this.form.invalid || this.isSubmitting) {
       this.snackBar.open('Preencha um email e senha válidos.', 'Fechar', { duration: 3000 });
       return;
     }
 
-    this.authService.login(this.form.getRawValue()).subscribe({
-      next: () => {
-        this.router.navigate(['/dashboard']);
-      },
-      error: () => {
-        this.snackBar.open('Credenciais inválidas.', 'Fechar', { duration: 3000 });
-      }
-    });
+    this.isSubmitting = true;
+    this.authService.login(this.form.getRawValue())
+      .pipe(finalize(() => (this.isSubmitting = false)))
+      .subscribe({
+        next: () => {
+          this.router.navigate(['/dashboard']);
+        },
+        error: () => {
+          this.snackBar.open('Credenciais inválidas.', 'Fechar', { duration: 3000 });
+        }
+      });
   }
 }

@@ -47,7 +47,14 @@ public class AnimalService : IAnimalService
             throw new InvalidOperationException("Tutor informado não existe.");
         }
 
+        if (animalDto.DataNascimento == default || animalDto.DataNascimento > DateTime.Today)
+        {
+            throw new InvalidOperationException("Data de nascimento inválida.");
+        }
+
         var animal = _mapper.Map<Animal>(animalDto);
+        animal.DataNascimento = DateTime.SpecifyKind(animalDto.DataNascimento, DateTimeKind.Utc);
+        animal.Idade = CalculateAge(animal.DataNascimento);
         _context.Animais.Add(animal);
         await _context.SaveChangesAsync();
 
@@ -75,11 +82,15 @@ public class AnimalService : IAnimalService
             throw new InvalidOperationException("Tutor informado não existe.");
         }
 
+        if (animalDto.DataNascimento == default || animalDto.DataNascimento > DateTime.Today)
+        {
+            throw new InvalidOperationException("Data de nascimento inválida.");
+        }
+
         animal.Nome = animalDto.Nome;
-        animal.Idade = animalDto.Idade;
+        animal.DataNascimento = DateTime.SpecifyKind(animalDto.DataNascimento, DateTimeKind.Utc);
+        animal.Idade = CalculateAge(animal.DataNascimento);
         animal.Peso = animalDto.Peso;
-        animal.DataNascimento = animalDto.DataNascimento;
-        animal.Foto = animalDto.Foto;
         animal.Especie = animalDto.Especie;
         animal.TutorId = animalDto.TutorId;
 
@@ -117,4 +128,17 @@ public class AnimalService : IAnimalService
             EspeciesCadastradas = especies.Count
         };
     }
+
+    private static int CalculateAge(DateTime birthDate)
+    {
+        var today = DateTime.Today;
+        var age = today.Year - birthDate.Year;
+        if (birthDate > today.AddYears(-age))
+        {
+            age--;
+        }
+
+        return Math.Max(age, 0);
+    }
 }
+

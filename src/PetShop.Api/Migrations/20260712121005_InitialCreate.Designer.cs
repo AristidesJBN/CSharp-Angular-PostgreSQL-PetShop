@@ -41,10 +41,6 @@ namespace PetShop.Api.Migrations
                         .HasMaxLength(100)
                         .HasColumnType("character varying(100)");
 
-                    b.Property<string>("Foto")
-                        .HasMaxLength(500)
-                        .HasColumnType("character varying(500)");
-
                     b.Property<int>("Idade")
                         .HasColumnType("integer");
 

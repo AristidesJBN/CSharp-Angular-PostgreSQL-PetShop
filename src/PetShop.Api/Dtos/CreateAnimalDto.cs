@@ -9,7 +9,7 @@ public class CreateAnimalDto
     public string Nome { get; set; } = string.Empty;
 
     [Required]
-    [Range(1, int.MaxValue)]
+    [Range(0, int.MaxValue)]
     public int Idade { get; set; }
 
     [Required]
@@ -18,8 +18,6 @@ public class CreateAnimalDto
 
     [Required]
     public DateTime DataNascimento { get; set; }
-
-    public string? Foto { get; set; }
 
     [Required]
     [MaxLength(100)]

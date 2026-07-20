@@ -5,6 +5,7 @@ import { MatPaginator, MatPaginatorModule } from '@angular/material/paginator';
 import { MatSort, MatSortModule } from '@angular/material/sort';
 import { MatDialog, MatDialogModule } from '@angular/material/dialog';
 import { MatButtonModule } from '@angular/material/button';
+import { MatCardModule } from '@angular/material/card';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { MatIconModule } from '@angular/material/icon';
@@ -17,25 +18,19 @@ import { Animal } from '../../../core/models/animal.model';
 @Component({
   selector: 'app-animais-lista',
   standalone: true,
-  imports: [CommonModule, MatTableModule, MatPaginatorModule, MatSortModule, MatDialogModule, MatButtonModule, MatFormFieldModule, MatInputModule, MatIconModule, ReactiveFormsModule, RouterLink],
+  imports: [CommonModule, MatTableModule, MatPaginatorModule, MatSortModule, MatDialogModule, MatButtonModule, MatCardModule, MatFormFieldModule, MatInputModule, MatIconModule, ReactiveFormsModule, RouterLink],
   template: `
-    <div class="toolbar">
-      <mat-form-field appearance="outline">
-        <mat-label>Pesquisar</mat-label>
-        <input matInput [formControl]="searchControl" />
-      </mat-form-field>
+    <mat-card class="table-card">
+      <div class="toolbar">
+        <mat-form-field appearance="outline" class="search-field">
+          <mat-label>Pesquisar</mat-label>
+          <input matInput [formControl]="searchControl" placeholder="Nome, espécie ou tutor" />
+        </mat-form-field>
 
-      <a mat-flat-button color="primary" routerLink="/animais/cadastro">Novo animal</a>
-    </div>
+        <a mat-flat-button color="primary" routerLink="/animais/cadastro">Novo animal</a>
+      </div>
 
-    <table mat-table [dataSource]="dataSource" matSort class="mat-elevation-z2">
-      <ng-container matColumnDef="foto">
-        <th mat-header-cell *matHeaderCellDef>Foto</th>
-        <td mat-cell *matCellDef="let row">
-          <img *ngIf="row.foto" [src]="row.foto" alt="" class="thumb" />
-        </td>
-      </ng-container>
-
+      <table mat-table [dataSource]="dataSource" matSort class="mat-elevation-z2 full-width-table">
       <ng-container matColumnDef="nome">
         <th mat-header-cell *matHeaderCellDef mat-sort-header>Nome</th>
         <td mat-cell *matCellDef="let row">{{ row.nome }}</td>
@@ -85,7 +80,7 @@ import { Animal } from '../../../core/models/animal.model';
   ]
 })
 export class AnimaisListaComponent implements OnInit, AfterViewInit {
-  protected readonly displayedColumns = ['foto', 'nome', 'especie', 'tutorNome', 'cidade', 'editar', 'excluir'];
+  protected readonly displayedColumns = ['nome', 'especie', 'tutorNome', 'cidade', 'editar', 'excluir'];
   protected readonly searchControl = new FormControl('');
   protected readonly dataSource = new MatTableDataSource<Animal>();
 

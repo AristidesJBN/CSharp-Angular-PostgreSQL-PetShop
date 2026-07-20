@@ -8,9 +8,9 @@ import { MatInputModule } from '@angular/material/input';
 import { MatSelectModule } from '@angular/material/select';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { ActivatedRoute, Router } from '@angular/router';
+import { finalize } from 'rxjs';
 import { AnimalService } from '../../../core/services/animal.service';
 import { TutorService } from '../../../core/services/tutor.service';
-import { ViaCepService } from '../../../core/services/via-cep.service';
 
 @Component({
   selector: 'app-animais-editar',
@@ -23,28 +23,19 @@ import { ViaCepService } from '../../../core/services/via-cep.service';
       <form [formGroup]="form" (ngSubmit)="submit()">
         <div class="grid">
           <mat-form-field appearance="outline">
-            <mat-label>Foto</mat-label>
-            <input matInput formControlName="foto" />
-          </mat-form-field>
-
-          <mat-form-field appearance="outline">
             <mat-label>Nome</mat-label>
             <input matInput formControlName="nome" />
           </mat-form-field>
 
           <mat-form-field appearance="outline">
-            <mat-label>Idade</mat-label>
-            <input matInput type="number" formControlName="idade" />
+            <mat-label>Data de nascimento</mat-label>
+            <input matInput type="date" formControlName="dataNascimento" autocomplete="bday" />
+            <mat-error *ngIf="form.get('dataNascimento')?.hasError('required')">Data de nascimento é obrigatória.</mat-error>
           </mat-form-field>
 
           <mat-form-field appearance="outline">
             <mat-label>Peso</mat-label>
             <input matInput type="number" step="0.01" formControlName="peso" />
-          </mat-form-field>
-
-          <mat-form-field appearance="outline">
-            <mat-label>Data de nascimento</mat-label>
-            <input matInput type="date" formControlName="dataNascimento" />
           </mat-form-field>
 
           <mat-form-field appearance="outline">
@@ -60,7 +51,9 @@ import { ViaCepService } from '../../../core/services/via-cep.service';
           </mat-form-field>
         </div>
 
-        <button mat-flat-button color="primary" type="submit">Salvar alterações</button>
+        <button mat-flat-button color="primary" type="submit" [disabled]="form.invalid || isSubmitting" class="submit-button">
+          {{ isSubmitting ? 'Salvando...' : 'Salvar alterações' }}
+        </button>
       </form>
     </mat-card>
   `,
@@ -75,22 +68,20 @@ export class AnimaisEditarComponent implements OnInit {
   protected tutores: Array<{ id: number; nome: string }> = [];
   private animalId = 0;
   protected form!: FormGroup;
+  protected isSubmitting = false;
 
   constructor(
     private readonly fb: FormBuilder,
     private readonly route: ActivatedRoute,
     private readonly animalService: AnimalService,
     private readonly tutorService: TutorService,
-    private readonly viaCepService: ViaCepService,
     private readonly snackBar: MatSnackBar,
     private readonly router: Router
   ) {
     this.form = this.fb.nonNullable.group({
-      foto: [''],
       nome: ['', [Validators.required]],
-      idade: [0, [Validators.required, Validators.min(1)]],
-      peso: [0, [Validators.required, Validators.min(0.01)]],
       dataNascimento: ['', [Validators.required]],
+      peso: [0, [Validators.required, Validators.min(0.01)]],
       especie: ['', [Validators.required]],
       tutorId: [0, [Validators.required, Validators.min(1)]]
     });
@@ -105,15 +96,48 @@ export class AnimaisEditarComponent implements OnInit {
 
     this.animalService.getById(this.animalId).subscribe((animal) => {
       this.form.patchValue({
-        foto: animal.foto ?? '',
         nome: animal.nome,
-        idade: animal.idade,
         peso: animal.peso,
-        dataNascimento: animal.dataNascimento.slice(0, 10),
+        dataNascimento: this.formatDateInput(animal.dataNascimento),
         especie: animal.especie,
         tutorId: animal.tutorId
       });
     });
+  }
+
+  private parseIsoDate(value: string): Date | null {
+    const normalized = String(value ?? '').trim();
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(normalized)) {
+      return null;
+    }
+
+    const [year, month, day] = normalized.split('-').map(Number);
+    const date = new Date(year, month - 1, day);
+    if (date.getFullYear() !== year || date.getMonth() !== month - 1 || date.getDate() !== day) {
+      return null;
+    }
+
+    return date;
+  }
+
+  private calculateAge(birthDate: Date): number {
+    const today = new Date();
+    let age = today.getFullYear() - birthDate.getFullYear();
+    const monthDiff = today.getMonth() - birthDate.getMonth();
+
+    if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birthDate.getDate())) {
+      age--;
+    }
+
+    return age;
+  }
+
+  private formatDateInput(value: string): string {
+    const date = new Date(value);
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const day = String(date.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
   }
 
   submit(): void {
@@ -122,24 +146,35 @@ export class AnimaisEditarComponent implements OnInit {
       return;
     }
 
+    const dataNascimentoValue = this.form.get('dataNascimento')?.value;
+    const birthDate = this.parseIsoDate(dataNascimentoValue);
+    if (birthDate === null) {
+      this.snackBar.open('Data de nascimento inválida. Escolha uma data válida.', 'Fechar', { duration: 3000 });
+      return;
+    }
+
     const payload = {
       nome: this.form.get('nome')?.value,
-      idade: this.form.get('idade')?.value,
+      idade: this.calculateAge(birthDate),
       peso: this.form.get('peso')?.value,
-      dataNascimento: this.form.get('dataNascimento')?.value,
+      dataNascimento: birthDate.toISOString().slice(0, 10),
       especie: this.form.get('especie')?.value,
-      tutorId: this.form.get('tutorId')?.value,
-      foto: this.form.get('foto')?.value || undefined
+      tutorId: this.form.get('tutorId')?.value
     };
 
-    this.animalService.update(this.animalId, payload).subscribe({
-      next: () => {
-        this.snackBar.open('Animal atualizado com sucesso.', 'Fechar', { duration: 3000 });
-        this.router.navigate(['/animais']);
-      },
-      error: () => {
-        this.snackBar.open('Não foi possível atualizar o animal.', 'Fechar', { duration: 3000 });
-      }
-    });
+    this.isSubmitting = true;
+    this.animalService.update(this.animalId, payload)
+      .pipe(finalize(() => (this.isSubmitting = false)))
+      .subscribe({
+        next: () => {
+          this.snackBar.open('Animal atualizado com sucesso.', 'Fechar', { duration: 3000 });
+          this.router.navigate(['/animais']);
+        },
+        error: (error) => {
+          console.error('Falha ao atualizar animal', error);
+          const message = error?.error?.message || error?.message || 'Não foi possível atualizar o animal.';
+          this.snackBar.open(message, 'Fechar', { duration: 5000 });
+        }
+      });
   }
 }

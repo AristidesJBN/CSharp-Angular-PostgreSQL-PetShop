@@ -15,7 +15,7 @@ export class AuthService {
   }
 
   login(payload: LoginRequest): Observable<LoginResponse> {
-    return this.http.post<LoginResponse>('http://localhost:5200/login', payload).pipe(
+    return this.http.post<LoginResponse>('http://localhost:5049/login', payload).pipe(
       tap((response) => {
         this.saveToken(response.token);
         this.saveUser({ nome: response.nome, email: response.email });

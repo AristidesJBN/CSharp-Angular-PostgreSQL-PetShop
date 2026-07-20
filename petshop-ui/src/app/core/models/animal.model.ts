@@ -4,7 +4,6 @@ export interface Animal {
   idade: number;
   peso: number;
   dataNascimento: string;
-  foto?: string;
   especie: string;
   tutorId: number;
   tutorNome?: string;
@@ -16,7 +15,6 @@ export interface AnimalPayload {
   idade: number;
   peso: number;
   dataNascimento: string;
-  foto?: string;
   especie: string;
   tutorId: number;
 }

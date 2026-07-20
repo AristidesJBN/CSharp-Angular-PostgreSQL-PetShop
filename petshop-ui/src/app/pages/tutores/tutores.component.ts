@@ -1,17 +1,22 @@
 import { CommonModule } from '@angular/common';
 import { Component, OnInit } from '@angular/core';
+import { MatButtonModule } from '@angular/material/button';
 import { MatCardModule } from '@angular/material/card';
 import { MatTableModule, MatTableDataSource } from '@angular/material/table';
+import { RouterLink } from '@angular/router';
 import { TutorService } from '../../core/services/tutor.service';
 import { Tutor } from '../../core/models/tutor.model';
 
 @Component({
   selector: 'app-tutores',
   standalone: true,
-  imports: [CommonModule, MatCardModule, MatTableModule],
+  imports: [CommonModule, MatCardModule, MatTableModule, MatButtonModule, RouterLink],
   template: `
     <mat-card>
-      <mat-card-title>Tutores</mat-card-title>
+      <div class="toolbar">
+        <mat-card-title>Tutores</mat-card-title>
+        <a mat-flat-button color="primary" routerLink="/tutores/cadastro">Novo tutor</a>
+      </div>
       <table mat-table [dataSource]="dataSource">
         <ng-container matColumnDef="nome">
           <th mat-header-cell *matHeaderCellDef>Nome</th>
@@ -35,6 +40,7 @@ import { Tutor } from '../../core/models/tutor.model';
   `,
   styles: [
     `
+      .toolbar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; gap: 12px; }
       table { width: 100%; }
     `
   ]

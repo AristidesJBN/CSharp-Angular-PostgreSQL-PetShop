@@ -8,10 +8,9 @@ import { MatInputModule } from '@angular/material/input';
 import { MatSelectModule } from '@angular/material/select';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { Router } from '@angular/router';
+import { finalize } from 'rxjs';
 import { AnimalService } from '../../../core/services/animal.service';
 import { TutorService } from '../../../core/services/tutor.service';
-import { UploadService } from '../../../core/services/upload.service';
-import { ViaCepService } from '../../../core/services/via-cep.service';
 
 @Component({
   selector: 'app-animais-cadastro',
@@ -24,28 +23,19 @@ import { ViaCepService } from '../../../core/services/via-cep.service';
       <form [formGroup]="form" (ngSubmit)="submit()">
         <div class="grid">
           <mat-form-field appearance="outline">
-            <mat-label>Foto</mat-label>
-            <input matInput formControlName="foto" />
-          </mat-form-field>
-
-          <mat-form-field appearance="outline">
             <mat-label>Nome</mat-label>
             <input matInput formControlName="nome" />
           </mat-form-field>
 
           <mat-form-field appearance="outline">
-            <mat-label>Idade</mat-label>
-            <input matInput type="number" formControlName="idade" />
+            <mat-label>Data de nascimento</mat-label>
+            <input matInput type="date" formControlName="dataNascimento" autocomplete="bday" />
+            <mat-error *ngIf="form.get('dataNascimento')?.hasError('required')">Data de nascimento é obrigatória.</mat-error>
           </mat-form-field>
 
           <mat-form-field appearance="outline">
             <mat-label>Peso</mat-label>
             <input matInput type="number" step="0.01" formControlName="peso" />
-          </mat-form-field>
-
-          <mat-form-field appearance="outline">
-            <mat-label>Data de nascimento</mat-label>
-            <input matInput type="date" formControlName="dataNascimento" />
           </mat-form-field>
 
           <mat-form-field appearance="outline">
@@ -59,39 +49,11 @@ import { ViaCepService } from '../../../core/services/via-cep.service';
               <mat-option *ngFor="let tutor of tutores" [value]="tutor.id">{{ tutor.nome }}</mat-option>
             </mat-select>
           </mat-form-field>
-
-          <mat-form-field appearance="outline">
-            <mat-label>CEP</mat-label>
-            <input matInput formControlName="cep" (blur)="buscarCep()" />
-          </mat-form-field>
-
-          <mat-form-field appearance="outline">
-            <mat-label>Número</mat-label>
-            <input matInput formControlName="numero" />
-          </mat-form-field>
-
-          <mat-form-field appearance="outline">
-            <mat-label>Logradouro</mat-label>
-            <input matInput formControlName="logradouro" />
-          </mat-form-field>
-
-          <mat-form-field appearance="outline">
-            <mat-label>Bairro</mat-label>
-            <input matInput formControlName="bairro" />
-          </mat-form-field>
-
-          <mat-form-field appearance="outline">
-            <mat-label>Cidade</mat-label>
-            <input matInput formControlName="cidade" />
-          </mat-form-field>
-
-          <mat-form-field appearance="outline">
-            <mat-label>UF</mat-label>
-            <input matInput formControlName="uf" />
-          </mat-form-field>
         </div>
 
-        <button mat-flat-button color="primary" type="submit">Salvar</button>
+        <button mat-flat-button color="primary" type="submit" [disabled]="form.invalid || isSubmitting" class="submit-button">
+          {{ isSubmitting ? 'Salvando...' : 'Salvar' }}
+        </button>
       </form>
     </mat-card>
   `,
@@ -105,30 +67,21 @@ import { ViaCepService } from '../../../core/services/via-cep.service';
 export class AnimaisCadastroComponent implements OnInit {
   protected tutores: Array<{ id: number; nome: string }> = [];
   protected form!: FormGroup;
+  protected isSubmitting = false;
 
   constructor(
     private readonly fb: FormBuilder,
     private readonly animalService: AnimalService,
     private readonly tutorService: TutorService,
-    private readonly viaCepService: ViaCepService,
     private readonly snackBar: MatSnackBar,
-    private readonly router: Router,
-    private readonly uploadService: UploadService
+    private readonly router: Router
   ) {
     this.form = this.fb.nonNullable.group({
-      foto: [''],
       nome: ['', [Validators.required]],
-      idade: [0, [Validators.required, Validators.min(1)]],
-      peso: [0, [Validators.required, Validators.min(0.01)]],
       dataNascimento: ['', [Validators.required]],
+      peso: [0, [Validators.required, Validators.min(0.01)]],
       especie: ['', [Validators.required]],
-      tutorId: [0, [Validators.required, Validators.min(1)]],
-      cep: ['', [Validators.required]],
-      logradouro: ['', [Validators.required]],
-      numero: ['', [Validators.required]],
-      bairro: ['', [Validators.required]],
-      cidade: ['', [Validators.required]],
-      uf: ['', [Validators.required]]
+      tutorId: [0, [Validators.required, Validators.min(1)]]
     });
   }
 
@@ -138,20 +91,31 @@ export class AnimaisCadastroComponent implements OnInit {
     });
   }
 
-  buscarCep(): void {
-    const cep = this.form.get('cep')?.value?.toString().replace(/\D/g, '');
-    if (!cep || cep.length !== 8) {
-      return;
+  private parseIsoDate(value: string): Date | null {
+    const normalized = String(value ?? '').trim();
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(normalized)) {
+      return null;
     }
 
-    this.viaCepService.buscar(cep).subscribe((response) => {
-      this.form.patchValue({
-        logradouro: response.logradouro,
-        bairro: response.bairro,
-        cidade: response.localidade,
-        uf: response.uf
-      });
-    });
+    const [year, month, day] = normalized.split('-').map(Number);
+    const date = new Date(year, month - 1, day);
+    if (date.getFullYear() !== year || date.getMonth() !== month - 1 || date.getDate() !== day) {
+      return null;
+    }
+
+    return date;
+  }
+
+  private calculateAge(birthDate: Date): number {
+    const today = new Date();
+    let age = today.getFullYear() - birthDate.getFullYear();
+    const monthDiff = today.getMonth() - birthDate.getMonth();
+
+    if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birthDate.getDate())) {
+      age--;
+    }
+
+    return age;
   }
 
   submit(): void {
@@ -160,24 +124,49 @@ export class AnimaisCadastroComponent implements OnInit {
       return;
     }
 
+    const dataNascimentoValue = this.form.get('dataNascimento')?.value;
+    const birthDate = this.parseIsoDate(dataNascimentoValue);
+    if (birthDate === null) {
+      this.snackBar.open('Data de nascimento inválida. Escolha uma data válida.', 'Fechar', { duration: 3000 });
+      return;
+    }
+
     const payload = {
       nome: this.form.get('nome')?.value,
-      idade: this.form.get('idade')?.value,
+      idade: this.calculateAge(birthDate),
       peso: this.form.get('peso')?.value,
-      dataNascimento: this.form.get('dataNascimento')?.value,
+      dataNascimento: birthDate.toISOString().slice(0, 10),
       especie: this.form.get('especie')?.value,
-      tutorId: this.form.get('tutorId')?.value,
-      foto: this.form.get('foto')?.value || undefined
+      tutorId: this.form.get('tutorId')?.value
     };
 
-    this.animalService.create(payload).subscribe({
-      next: () => {
-        this.snackBar.open('Animal cadastrado com sucesso.', 'Fechar', { duration: 3000 });
-        this.router.navigate(['/animais']);
-      },
-      error: () => {
-        this.snackBar.open('Não foi possível cadastrar o animal.', 'Fechar', { duration: 3000 });
-      }
-    });
+    this.isSubmitting = true;
+    this.animalService.create(payload)
+      .pipe(finalize(() => (this.isSubmitting = false)))
+      .subscribe({
+        next: () => {
+          this.snackBar.open('Animal cadastrado com sucesso.', 'Fechar', { duration: 3000 });
+          this.router.navigate(['/animais']);
+        },
+        error: (error) => {
+          console.error('Falha ao cadastrar animal', error);
+          let message = 'Não foi possível cadastrar o animal.';
+
+          if (error?.error) {
+            if (typeof error.error === 'string') {
+              message = error.error;
+            } else if (error.error?.message) {
+              message = error.error.message;
+            } else if (error.error?.errors) {
+              const validationErrors = Object.values(error.error.errors).flat();
+              if (validationErrors.length) {
+                message = validationErrors.join(' ');
+              }
+            }
+          }
+
+          this.snackBar.open(message, 'Fechar', { duration: 5000 });
+        }
+      });
   }
 }

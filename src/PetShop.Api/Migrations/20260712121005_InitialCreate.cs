@@ -57,7 +57,6 @@ namespace PetShop.Api.Migrations
                     Idade = table.Column<int>(type: "integer", nullable: false),
                     Peso = table.Column<decimal>(type: "numeric", nullable: false),
                     DataNascimento = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
-                    Foto = table.Column<string>(type: "character varying(500)", maxLength: 500, nullable: true),
                     Especie = table.Column<string>(type: "character varying(100)", maxLength: 100, nullable: false),
                     TutorId = table.Column<int>(type: "integer", nullable: false)
                 },

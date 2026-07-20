@@ -35,7 +35,6 @@ CREATE TABLE IF NOT EXISTS "Animais" (
     "Idade" INTEGER NOT NULL,
     "Peso" NUMERIC NOT NULL,
     "DataNascimento" TIMESTAMPTZ NOT NULL,
-    "Foto" VARCHAR(500),
     "Especie" VARCHAR(100) NOT NULL,
     "TutorId" INTEGER NOT NULL,
     CONSTRAINT "FK_Animais_Tutores_TutorId"

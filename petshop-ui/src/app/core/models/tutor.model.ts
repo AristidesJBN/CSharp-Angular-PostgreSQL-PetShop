@@ -8,3 +8,5 @@ export interface Tutor {
   cidade: string;
   uf: string;
 }
+
+export type TutorPayload = Omit<Tutor, 'id'>;

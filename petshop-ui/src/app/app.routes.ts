@@ -7,6 +7,7 @@ import { AnimaisListaComponent } from './pages/animais/lista/animais-lista.compo
 import { AnimaisCadastroComponent } from './pages/animais/cadastro/animais-cadastro.component';
 import { AnimaisEditarComponent } from './pages/animais/editar/animais-editar.component';
 import { TutoresComponent } from './pages/tutores/tutores.component';
+import { TutoresCadastroComponent } from './pages/tutores/cadastro/tutores-cadastro.component';
 
 export const routes: Routes = [
   { path: 'login', component: LoginComponent },
@@ -20,7 +21,8 @@ export const routes: Routes = [
       { path: 'animais', component: AnimaisListaComponent },
       { path: 'animais/cadastro', component: AnimaisCadastroComponent },
       { path: 'animais/editar/:id', component: AnimaisEditarComponent },
-      { path: 'tutores', component: TutoresComponent }
+      { path: 'tutores', component: TutoresComponent },
+      { path: 'tutores/cadastro', component: TutoresCadastroComponent }
     ]
   }
 ];

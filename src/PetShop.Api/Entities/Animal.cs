@@ -22,9 +22,6 @@ public class Animal
     [Required]
     public DateTime DataNascimento { get; set; }
 
-    [MaxLength(500)]
-    public string? Foto { get; set; }
-
     [Required]
     [MaxLength(100)]
     public string Especie { get; set; } = string.Empty;

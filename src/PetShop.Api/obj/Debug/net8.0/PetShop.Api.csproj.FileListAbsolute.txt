@@ -242,3 +242,4 @@ c:\Users\anagi\CSharp-Angular-PostgreSQL-PetShop\src\PetShop.Api\obj\Debug\net8.
 c:\Users\anagi\CSharp-Angular-PostgreSQL-PetShop\src\PetShop.Api\obj\Debug\net8.0\PetShop.Api.pdb
 c:\Users\anagi\CSharp-Angular-PostgreSQL-PetShop\src\PetShop.Api\obj\Debug\net8.0\PetShop.Api.genruntimeconfig.cache
 c:\Users\anagi\CSharp-Angular-PostgreSQL-PetShop\src\PetShop.Api\obj\Debug\net8.0\ref\PetShop.Api.dll
+C:\Users\anagi\CSharp-Angular-PostgreSQL-PetShop\src\PetShop.Api\obj\Debug\net8.0\PetShop.Api.sourcelink.json
